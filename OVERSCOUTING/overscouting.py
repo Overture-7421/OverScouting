@@ -1,83 +1,86 @@
+import tkinter as tk
+from tkinter import messagebox, filedialog, scrolledtext
 import csv
 import os
+import threading
+import time
 
 filename = "data_backup.csv"
-data_list = []
+backup_filename = "data_backup_autosave.csv"
 
-print("""
-                                          _   _             
-                                         | | (_)            
-   _____   _____ _ __ ___  ___ ___  _   _| |_ _ _ __   __ _ 
-  / _ \ \ / / _ \ '__/ __|/ __/ _ \| | | | __| | '_ \ / _` |
- | (_) \ V /  __/ |  \__ \ (_| (_) | |_| | |_| | | | | (_| |
-  \___/ \_/ \___|_|  |___/\___\___/ \__,_|\__|_|_| |_|\__, |
-                                                       __/ |
-                                                      |___/ 
+class OverScoutingApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("OverScouting")
 
-by FIRST FRC Team Overture - 7421""")
+        self.data_history = []  # Stack for undo feature
+        self.current_data = ""  # Keep track of the current data
 
-print("\n Bienvenido a OverScouting, la herramienta de compilación de datos por QR para tu equipo de FRC. Agradecemos la aplicación de QRScout de Red Hawk Robotics 2713.\n")
+        self.main_frame = tk.Frame(self.root)
+        self.main_frame.pack(padx=10, pady=10)
 
-def load_existing_data():
-    """Cargando los datos existentes del archivo. Si existe."""
-    if os.path.exists(filename):
-        with open(filename, 'r', newline='') as file:
-            reader = csv.reader(file)
-            for row in reader:
-                data_list.append(row)
-        print("Datos cargados exitosamente.")
+        self.text_area = scrolledtext.ScrolledText(self.main_frame, height=15, width=75)
+        self.text_area.pack(pady=(0, 10))
+        self.text_area.bind("<KeyRelease>", self.on_text_change)  # Bind text change event
 
-def add_data():
-    while True:
-        new_data = input("Introduzca nuevos datos (escriba 'exit' para salir o 'undo' para borrar el último dato introducido.): ")
-        if new_data.lower() == 'exit':
-            post_entry_options()
-            break
-        elif new_data.lower() == 'undo':
-            if data_list:
-                removed_data = data_list.pop()
-                remove_last_line()
-                print(f"Último dato introducido borrado: {removed_data}")
-            else:
-                print("No hay datos para borrar.")
-        else:
-            data_fields = new_data.split('\t')
-            data_list.append(data_fields)
-            autosave_data(data_fields)
-            print("Datos cargados exitosamente.")
+        self.undo_button = tk.Button(self.main_frame, text="Undo", command=self.undo_change)
+        self.undo_button.pack(side=tk.LEFT, padx=(0, 10))
 
-def autosave_data(data_fields):
-    """Autosave los nuevos datos al archivo."""
-    with open(filename, 'a', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(data_fields)
-    print("Datos autosaved.")
+        self.save_button = tk.Button(self.main_frame, text="Save CSV", command=self.save_csv)
+        self.save_button.pack(side=tk.LEFT)
 
-def remove_last_line():
-    """Remove the last line from the CSV file."""
-    with open(filename, 'r+', newline='') as file:
-        lines = file.readlines()
-        file.seek(0)
-        file.truncate()
-        file.writelines(lines[:-1])
+        self.autosave_interval = 30  # Autosave every 30 seconds
+        self.autosave_thread = threading.Thread(target=self.autosave_data, daemon=True)
+        self.autosave_thread.start()
 
-def post_entry_options():
-    print("\n¿Qué te gustaría hacer?:")
-    print("1. Crear un CSV con los datos generados")
-    print("2. Salir del programa")
-    choice = input("Introducir tu decisión (1-2): ")
+        self.load_existing_data()
 
-    if choice == "1":
-        create_csv()
-    print("Saliendo del programa.")
+    def on_text_change(self, event=None):
+        new_data = self.text_area.get('1.0', tk.END)
+        if self.current_data != new_data:
+            self.data_history.append(self.current_data)  # Save the previous state
+            self.current_data = new_data  # Update current state
 
-def create_csv():
-    with open("data_final.csv", 'w', newline='') as file:
-        writer = csv.writer(file)
-        for item in data_list:
-            writer.writerow(item)
-    print("Datos exportados a data_final.csv exitosamente.")
+    def undo_change(self):
+        if self.data_history:
+            last_state = self.data_history.pop()
+            self.text_area.delete('1.0', tk.END)
+            self.text_area.insert('1.0', last_state)
+            self.current_data = last_state  # Update current state
+
+    def autosave_data(self):
+        """Periodically autosave the data to a backup file."""
+        while True:
+            with open(backup_filename, 'w', newline='') as file:
+                file.write(self.text_area.get('1.0', tk.END))
+            time.sleep(self.autosave_interval)
+
+    def load_existing_data(self):
+        """Load existing data from the backup file, if it exists."""
+        load_filename = backup_filename if os.path.exists(backup_filename) else filename
+        if os.path.exists(load_filename):
+            with open(load_filename, 'r', newline='') as file:
+                data = file.read()
+                self.text_area.insert(tk.END, data)
+                self.current_data = data
+
+    def save_csv(self):
+        """Parse the text area content and save it to a CSV file."""
+        content = self.text_area.get('1.0', tk.END).strip()
+        lines = content.split('\n')
+        data_list = [line.split('\t') for line in lines if line]
+
+        export_filename = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+        if export_filename:
+            with open(export_filename, 'w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerows(data_list)
+            messagebox.showinfo("Success", "Data saved to CSV successfully.")
+            # After a successful save, backup file can be updated to reflect this state
+            with open(backup_filename, 'w', newline='') as backup_file:
+                backup_file.write(content)
 
 if __name__ == "__main__":
-    load_existing_data()
-    add_data()
+    root = tk.Tk()
+    app = OverScoutingApp(root)
+    root.mainloop()
