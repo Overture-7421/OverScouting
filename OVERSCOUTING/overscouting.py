@@ -52,16 +52,24 @@ class OverScoutingApp:
         self.save_button = tk.Button(self.main_frame, text="Save CSV", command=self.save_csv)
         self.save_button.pack(side=tk.LEFT)
 
-        self.autosave_interval = 30  # Autosave every 30 seconds
+        self.autosave_interval = 30
         self.autosave_thread = threading.Thread(target=self.autosave_data, daemon=True)
         self.autosave_thread.start()
 
+        self.status_label = tk.Label(self.main_frame, text="", fg="green")
+        self.status_label.pack(pady=(10, 0))
+
         self.load_existing_data()
+
+    def update_status(self, message):
+        """Update the status label with the given message."""
+        self.status_label.config(text=message)
+        self.root.after(5000, lambda: self.status_label.config(text=""))
 
     def save_current_state(self):
         """Save the current state before adding new entry for undo functionality."""
-        self.data_history.append(self.text_area.get('1.0', tk.END))  # Save the current state
-        # Add your logic here for handling the new entry if needed
+        self.data_history.append(self.text_area.get('1.0', tk.END))
+        self.update_status("Entry ready to be added.")
 
     def undo_change(self):
         """Undo the last entry based on significant action."""
@@ -69,12 +77,12 @@ class OverScoutingApp:
             last_state = self.data_history.pop()
             self.text_area.delete('1.0', tk.END)
             self.text_area.insert('1.0', last_state)
+            self.update_status("Last action undone successfully.")
 
     def autosave_data(self):
         """Periodically autosave the data to a backup file, ensuring data is CSV-formatted."""
         while True:
             content = self.text_area.get('1.0', tk.END).strip()
-            # Assuming TAB-separated data; replace '\t' with ',' if necessary
             lines = content.split('\n')
             csv_formatted_lines = [line.replace('\t', ',') for line in lines]
 
@@ -106,6 +114,7 @@ class OverScoutingApp:
             messagebox.showinfo("Success", "Data saved to CSV successfully.")
             with open(backup_filename, 'w', newline='') as backup_file:
                 backup_file.write(content)
+        self.update_status("Data saved to CSV successfully.")
 
 if __name__ == "__main__":
     root = tk.Tk()

@@ -8,10 +8,15 @@
             "fields": [
                 {
                     "title": "Lead Scouter Name",
-                    "type": "text",
+                    "type": "select",
                     "required": true,
-                    "code": "lead_scouter",
-                    "preserveDataOnReset": true                    
+                    "code": "leadscoutername",
+                    "choices": {
+                        "SQM": "SantiQ",
+                        "GRF": "GaboR",
+                        "SCR": "SilvanaC"
+                    },
+                    "defaultValue": "No Climb"                
                 },
                 {
                     "title": "Scouter Name",
