@@ -80,7 +80,6 @@
           "title": "Starting Position",
           "type": "select",
           "required": true,
-          "code": "robot",
           "choices": {
             "Center": "Center",
             "Amp": "Amp side",
