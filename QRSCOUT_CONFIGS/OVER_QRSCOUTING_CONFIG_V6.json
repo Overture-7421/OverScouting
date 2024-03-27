@@ -203,9 +203,8 @@
         {
           "code": "trapnote",
           "title": "Note in Trap?",
-          "type": "counter",
-          "defaultValue": 0,
-          "min": 0,
+          "type": "boolean",
+          "defaultValue": false,
           "required": true
         }
       ]
