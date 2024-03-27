@@ -191,7 +191,7 @@
                     "code": "harm",
                     "choices": {
                         "NotA": "Not Attempted",
-                        "NotC": "Not Completed",
+                        "NotC": "Attempted, Not Completed",
                         "Fir": "First on Chain",
                         "Sec": "Second on Chain",
                         "Thir": "Third on Chain"
@@ -208,10 +208,11 @@
                     "title": "Offense Skill",
                     "type": "select",
                     "choices": {
-                        "1": "Not Effective",
-                        "2": "Average",
-                        "3": "Very Effective",
-                        "0": "Not Observed"
+                        "NE": "Not Effective",
+                        "AVG": "Average",
+                        "VE": "Very Effective",
+                        "0": "Not Observed",
+                        "NA": "Not Applicable"
                     },
                     "required": false
                 },
@@ -220,10 +221,11 @@
                     "title": "Defense Skill",
                     "type": "select",
                     "choices": {
-                        "1": "Not Effective",
-                        "2": "Average",
-                        "3": "Very Effective",
-                        "0": "Not Observed"
+                        "NE": "Not Effective",
+                        "AVG": "Average",
+                        "VE": "Very Effective",
+                        "0": "Not Observed",
+                        "NA": "Not Applicable"
                     },
                     "defaultValue": "0",
                     "required": false

@@ -13,6 +13,27 @@ class OverScoutingApp:
         self.root = root
         self.root.title("OverScouting")
 
+        self.ascii_art = """
+
+                                                    _   _             
+                                                   | | (_)            
+             _____   _____ _ __ ___  ___ ___  _   _| |_ _ _ __   __ _ 
+            / _ \ \ / / _ \ '__/ __|/ __/ _ \| | | | __| | '_ \ / _` |
+           | (_) \ V /  __/ |  \__ \ (_| (_) | |_| | |_| | | | | (_| |
+            \___/ \_/ \___|_|  |___/\___\___/ \__,_|\__|_|_| |_|\__, |
+                                                                 __/ |
+                                                                |___/ 
+            by FIRST FRC Team Overture - 7421        
+            
+            Bienvenido a OverScouting, la herramienta de compilación de datos por QR.
+            Agradecemos la aplicación de QRScout de Red Hawk Robotics 2713.                            
+        """
+        
+        self.ascii_display = tk.Text(self.root, height=20, width=100)
+        self.ascii_display.pack()
+        self.ascii_display.insert(tk.END, self.ascii_art)
+        self.ascii_display.config(state='disabled')
+        
         self.data_history = []  # Stack for undo feature
         self.current_data = ""  # Keep track of the current data
 
@@ -21,7 +42,9 @@ class OverScoutingApp:
 
         self.text_area = scrolledtext.ScrolledText(self.main_frame, height=15, width=75)
         self.text_area.pack(pady=(0, 10))
-        self.text_area.bind("<KeyRelease>", self.on_text_change)  # Bind text change event
+
+        self.add_entry_button = tk.Button(self.main_frame, text="Add Entry", command=self.save_current_state)
+        self.add_entry_button.pack(side=tk.LEFT, padx=(0, 10))
 
         self.undo_button = tk.Button(self.main_frame, text="Undo", command=self.undo_change)
         self.undo_button.pack(side=tk.LEFT, padx=(0, 10))
@@ -35,24 +58,29 @@ class OverScoutingApp:
 
         self.load_existing_data()
 
-    def on_text_change(self, event=None):
-        new_data = self.text_area.get('1.0', tk.END)
-        if self.current_data != new_data:
-            self.data_history.append(self.current_data)  # Save the previous state
-            self.current_data = new_data  # Update current state
+    def save_current_state(self):
+        """Save the current state before adding new entry for undo functionality."""
+        self.data_history.append(self.text_area.get('1.0', tk.END))  # Save the current state
+        # Add your logic here for handling the new entry if needed
 
     def undo_change(self):
+        """Undo the last entry based on significant action."""
         if self.data_history:
             last_state = self.data_history.pop()
             self.text_area.delete('1.0', tk.END)
             self.text_area.insert('1.0', last_state)
-            self.current_data = last_state  # Update current state
 
     def autosave_data(self):
-        """Periodically autosave the data to a backup file."""
+        """Periodically autosave the data to a backup file, ensuring data is CSV-formatted."""
         while True:
+            content = self.text_area.get('1.0', tk.END).strip()
+            # Assuming TAB-separated data; replace '\t' with ',' if necessary
+            lines = content.split('\n')
+            csv_formatted_lines = [line.replace('\t', ',') for line in lines]
+
             with open(backup_filename, 'w', newline='') as file:
-                file.write(self.text_area.get('1.0', tk.END))
+                for line in csv_formatted_lines:
+                    file.write(line + '\n')
             time.sleep(self.autosave_interval)
 
     def load_existing_data(self):
@@ -76,7 +104,6 @@ class OverScoutingApp:
                 writer = csv.writer(file)
                 writer.writerows(data_list)
             messagebox.showinfo("Success", "Data saved to CSV successfully.")
-            # After a successful save, backup file can be updated to reflect this state
             with open(backup_filename, 'w', newline='') as backup_file:
                 backup_file.write(content)
 
