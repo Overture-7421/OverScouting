@@ -157,6 +157,14 @@
           "required": true
         },
         {
+          "code": "Freec",
+          "title": "Free Cycle",
+          "type": "counter",
+          "defaultValue": 0,
+          "min": 0,
+          "required": true
+        },
+        {
           "code": "Supc",
           "title": "Support Cycle",
           "type": "counter",
@@ -167,6 +175,13 @@
         {
           "code": "telecoop",
           "title": "Coopertition",
+          "type": "boolean",
+          "defaultValue": false,
+          "required": true
+        },
+        {
+          "code": "Stuckednote",
+          "title": "Stucked Note?",
           "type": "boolean",
           "defaultValue": false,
           "required": true
@@ -254,13 +269,13 @@
           "title": "Offense Skill",
           "type": "select",
           "choices": {
-            "0": "Not Observed",
+            "NO": "Not Observed",
             "NE": "Not Effective",
             "AVG": "Average",
             "VE": "Very Effective",
             "NA": "Not Applicable"
           },
-          "defaultValue": "0",
+          "defaultValue": "NO",
           "required": false
         },
         {
@@ -268,13 +283,13 @@
           "title": "Defense Skill",
           "type": "select",
           "choices": {
-            "0": "Not Observed",
+            "NO": "Not Observed",
             "NE": "Not Effective",
             "AVG": "Average",
             "VE": "Very Effective",
             "NA": "Not Applicable"
           },
-          "defaultValue": "0",
+          "defaultValue": "NO",
           "required": false
         },
         {
