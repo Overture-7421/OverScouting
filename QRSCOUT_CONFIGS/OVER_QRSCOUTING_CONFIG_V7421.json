@@ -257,7 +257,7 @@
             "Sec": "Second on Chain",
             "Thir": "Third on Chain"
           },
-          "defaultValue": "Not Attempted"
+          "defaultValue": "NotA"
         }
       ]
     },
